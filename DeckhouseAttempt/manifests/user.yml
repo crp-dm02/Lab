@@ -1,0 +1,28 @@
+apiVersion: deckhouse.io/v1
+kind: ClusterAuthorizationRule
+metadata:
+  name: admin
+spec:
+  # список учётных записей Kubernetes RBAC
+  subjects:
+  - kind: User
+    name: admin@mtuci-lab.sslip.io
+  # предустановленный шаблон уровня доступа
+  accessLevel: SuperAdmin
+  # разрешить пользователю делать kubectl port-forward
+  portForwarding: true
+---
+# секция, описывающая параметры статического пользователя
+# используемая версия API Deckhouse
+apiVersion: deckhouse.io/v1
+kind: User
+metadata:
+  name: admin
+spec:
+  # e-mail пользователя
+  email: admin@mtuci-lab.sslip.io
+  # это хэш пароля od48ez4rmn, сгенерированного сейчас
+  # сгенерируйте свой или используйте этот, но только для тестирования
+  # echo "od48ez4rmn" | htpasswd -BinC 10 "" | cut -d: -f2 | base64 -w0
+  # возможно, захотите изменить
+  password: 'JDJhJDEwJFRCODZzblpXL3d1anp2d1JqaUpjUC51VHpwVnM0MGJGMm1ZZ0tBN01pMi5hS2lYUHBSZFVp'

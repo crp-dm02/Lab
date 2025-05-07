@@ -41,3 +41,62 @@
         message: ""
         version: "2"
 ```
+
+## user.yml
+этот yaml  создает пользователя для доступа в веб-интерфейсы кластера на мастере
+
+## ingress-nginx-controller.yml
+установка ingress контроллера на мастере
+
+## подготовка и добавление workers
+на worker нодах надо выполнить команды 
+
+```bash
+export KEY=''
+sudo useradd -m -s /bin/bash caps
+sudo usermod -aG sudo caps
+sudo echo 'caps ALL=(ALL) NOPASSWD: ALL' | sudo EDITOR='tee -a' visudo
+sudo mkdir /home/caps/.ssh
+sudo echo "$KEY" | sudo tee -a /home/caps/.ssh/authorized_keys > /dev/null
+sudo chown -R caps:caps /home/caps
+sudo chmod 700 /home/caps/.ssh
+sudo chmod 600 /home/caps/.ssh/authorized_keys
+sudo cat  /home/caps/.ssh/authorized_keys 
+```
+
+на мастере согласно доке https://deckhouse.ru/products/kubernetes-platform/gs/bm/step5.html
+
+исключение если добавлять еще одну worker ноду, то в NodeGroup указываем количество StaticInstances 
+```bash
+sudo -i d8 k create -f - << EOF
+apiVersion: deckhouse.io/v1
+kind: NodeGroup
+metadata:
+  name: worker
+spec:
+  nodeType: Static
+  staticInstances:
+    count: <your>
+    labelSelector:
+      matchLabels:
+        role: worker
+EOF
+```
+и создавать соответствующее количество staticinstances
+```bash
+# Укажите IP-адрес узла, который необходимо подключить к кластеру.
+export NODE=<NODE-IP-ADDRESS>
+sudo -i d8 k create -f - <<EOF
+apiVersion: deckhouse.io/v1alpha1
+kind: StaticInstance
+metadata:
+  name: d8cluster-worker<your number>
+  labels:
+    role: worker
+spec:
+  address: "$NODE"
+  credentialsRef:
+    kind: SSHCredentials
+    name: caps
+EOF
+```
