@@ -66,7 +66,8 @@ sudo cat  /home/caps/.ssh/authorized_keys
 
 на мастере согласно доке https://deckhouse.ru/products/kubernetes-platform/gs/bm/step5.html
 
-исключение если добавлять еще одну worker ноду, то в NodeGroup указываем количество StaticInstances 
+исключение 
+если добавлять еще одну worker ноду, то в NodeGroup указываем количество StaticInstances 
 ```bash
 sudo -i d8 k create -f - << EOF
 apiVersion: deckhouse.io/v1
@@ -99,4 +100,25 @@ spec:
     kind: SSHCredentials
     name: caps
 EOF
+```
+
+##  curl-runner.yml
+
+Deployment и service c curl для проверки доступности любого адреса указанного в качестве параметра 
+
+## ssh-runner.yml
+
+Pod c проверкой подключения по ssh к  vm с pnetlab в одной сети без egress gateway
+
+## ssh-cisco.yml
+
+Pod c проверкой подключения по ssh к  cisco роутеру в pnetlab в одной сети без egress gateway
+
+## snmp-exporter-deckhouse.yaml
+
+Yaml создает Deployment, Service, ServiceMonitor для экспорта данных с роутера в pnetlab в одной сети без egress gateway
+кроме того предварительно необходимо создать ConfigMap из файла snmp-lite.yml (ограничение 1 Mb), либо подключать файл snmp.yml (1,5 Mb) отдельно.
+
+```bash
+sudo -i kubectl create configmap snmp-exporter-config   --from-file=/home/ubuntu/snmp.yml   -n d8-monitoring
 ```

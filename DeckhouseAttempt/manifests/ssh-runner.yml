@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ssh-pass-runner
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ssh-pass-runner
+  template:
+    metadata:
+      labels:
+        app: ssh-pass-runner
+    spec:
+      containers:
+        - name: sshpass
+          image: ubuntu:22.04
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              apt update && apt install -y sshpass openssh-client;
+              echo "Starting SSH loop with password auth...";
+              while true; do
+                echo "Connecting to 10.0.200.100 via SSH...";
+                sshpass -p pnet ssh -o StrictHostKeyChecking=no root@10.0.200.100 "ls -l /root/ " || echo "SSH failed";
+                sleep 30;
+              done

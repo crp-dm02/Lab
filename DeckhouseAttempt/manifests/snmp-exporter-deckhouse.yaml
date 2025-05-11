@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: snmp-exporter
+  namespace: d8-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: snmp-exporter
+  template:
+    metadata:
+      labels:
+        app: snmp-exporter
+    spec:
+      containers:
+        - name: snmp-exporter
+          image: prom/snmp-exporter
+          args:
+            - "--config.file=/etc/snmp_exporter/snmp.yml"
+          ports:
+            - name: http
+              containerPort: 9116
+          volumeMounts:
+            - name: config
+              mountPath: /etc/snmp_exporter
+      volumes:
+        - name: config
+          configMap:
+            name: snmp-exporter-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: snmp-exporter
+  namespace: d8-monitoring
+  labels:
+    app: snmp-exporter
+spec:
+  selector:
+    app: snmp-exporter
+  ports:
+    - name: http
+      port: 9116
+      targetPort: 9116
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: snmp-exporter
+  namespace: d8-monitoring
+  labels:
+    prometheus: main
+spec:
+  selector:
+    matchLabels:
+      app: snmp-exporter
+  endpoints:
+    - port: http
+      path: /snmp
+      interval: 30s
+      params:
+        target: [10.0.200.200]

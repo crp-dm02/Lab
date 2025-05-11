@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ssh-cisco-runner
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ssh-cisco-runner
+  template:
+    metadata:
+      labels:
+        app: ssh-cisco-runner
+    spec:
+      containers:
+        - name: sshpass
+          image: ubuntu:22.04
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              apt update && apt install -y sshpass openssh-client;
+              echo "Starting SSH loop to Cisco device...";
+              while true; do
+                echo "Connecting to Cisco 10.0.200.200...";
+                sshpass -p 'admin' ssh -o StrictHostKeyChecking=no \
+                  -o KexAlgorithms=+diffie-hellman-group1-sha1 \
+                  -o Ciphers=+aes128-cbc \
+                  -o HostKeyAlgorithms=+ssh-rsa \
+                  admin@10.0.200.200 "show version" || echo "SSH failed";
+                sleep 30;
+              done
