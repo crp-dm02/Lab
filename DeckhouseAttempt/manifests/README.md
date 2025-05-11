@@ -122,3 +122,111 @@ Yaml создает Deployment, Service, ServiceMonitor для экспорта 
 ```bash
 sudo -i kubectl create configmap snmp-exporter-config   --from-file=/home/ubuntu/snmp.yml   -n d8-monitoring
 ```
+
+## Next steps 
+
+Цель была сделать возможным исходящий трафик в сеть отличную от сети кластера Deckhouse и тут были возможны несколько вариантов 
+1. egress gateway cilium 
+2. egress gateway istio 
+
+Поддержка egressgateway cilium в CE версии Deckhouse не предусмотрена, поэтому оставался вариант с istio 
+В Deckhouse есть поддержка istio как модуля
+
+## istio-enable.yaml 
+
+Включение модуля istio и установка запрета выхода трафика не через egress и передача некоторых функций CNI istio
+
+## istio-curl.yml 
+
+пример реализации curl с доки istio для тестирования egressgateway 
+
+## Example egress gateway from istio doc 
+
+```bash
+sudo -i kubectl apply -f - <<EOF
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: cnn
+spec:
+  hosts:
+  - edition.cnn.com
+  ports:
+  - number: 80
+    name: http-port
+    protocol: HTTP
+  - number: 443
+    name: https
+    protocol: HTTPS
+  resolution: DNS
+EOF
+```
+```bash
+sudo -i kubectl apply -f - <<EOF
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-egressgateway
+spec:
+  selector:
+    istio: egressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - edition.cnn.com
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: egressgateway-for-cnn
+spec:
+  host: istio-egressgateway.default.svc.cluster.local
+  subsets:
+  - name: cnn
+EOF
+```
+
+```bash
+sudo -i kubectl apply -f - <<EOF
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: direct-cnn-through-egress-gateway
+spec:
+  hosts:
+  - edition.cnn.com
+  gateways:
+  - istio-egressgateway
+  - mesh
+  http:
+  - match:
+    - gateways:
+      - mesh
+      port: 80
+    route:
+    - destination:
+        host: istio-egressgateway.default.svc.cluster.local
+        subset: cnn
+        port:
+          number: 80
+      weight: 100
+  - match:
+    - gateways:
+      - istio-egressgateway
+      port: 80
+    route:
+    - destination:
+        host: edition.cnn.com
+        port:
+          number: 80
+      weight: 100
+EOF
+```
+
+команда включения istio в default namespace
+```bash
+ sudo -i kubectl label ns default istio-injection=enabled
+ ```
