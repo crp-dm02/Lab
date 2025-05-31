@@ -1,0 +1,15 @@
+USER-SUPPLIED VALUES:
+bpf:
+  masquerade: true
+cluster:
+  name: kubernetes
+egressGateway:
+  enabled: true
+k8sServiceHost: 127.0.0.1
+k8sServicePort: 6445
+kubeProxyReplacement: true
+nativeRoutingCIDR: 10.0.0.0/16
+operator:
+  replicas: 1
+routingMode: native
+tunnelProtocol: disabled

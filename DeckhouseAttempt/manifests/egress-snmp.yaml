@@ -1,0 +1,20 @@
+apiVersion: cilium.io/v2
+kind: CiliumEgressGatewayPolicy
+metadata:
+  name: snmp-exporter-egress
+spec:
+  selectors:
+    - podSelector:
+        matchLabels:
+          app: snmp-exporter
+      namespaceSelector:
+        matchLabels:
+          name: snmp-monitoring
+  egressGateway:
+    nodeSelector:
+      matchLabels:
+        kubernetes.io/hostname: k8s-worker1  # или другой нужный узел
+    egressIP: 10.0.200.2                     # egress IP, заранее настроенный на узле
+  destinationCIDRs:
+    - 10.0.200.200/32
+    - 192.168.200.100/32
