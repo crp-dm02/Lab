@@ -1,0 +1,4 @@
+apiVersion: v2
+name: snmp-exporter
+version: 0.1.0
+description: SNMP exporter

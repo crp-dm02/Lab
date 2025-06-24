@@ -1,0 +1,25 @@
+{{- range .Values.devices }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: snmp-exporter-{{ .ip | replace "." "-" }}
+  namespace: d8-monitoring
+  labels:
+    prometheus: main
+spec:
+  selector:
+    matchLabels:
+      app: snmp-exporter
+  endpoints:
+    - port: http
+      path: /snmp
+      interval: 30s
+      params:
+        target: [{{ .ip }}]
+      relabelings:
+        - sourceLabels: [__param_target]
+          targetLabel: instance
+        - targetLabel: device
+          replacement: {{ .name }}
+---
+{{- end }}

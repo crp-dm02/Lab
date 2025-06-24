@@ -1,0 +1,7 @@
+namespace: snmp-monitoring
+
+devices:
+  - name: mikrotik
+    ip: 192.168.200.100
+  - name: cisco
+    ip: 10.0.200.200
