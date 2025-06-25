@@ -5,3 +5,5 @@ devices:
     ip: 192.168.200.100
   - name: cisco
     ip: 10.0.200.200
+  - name: mikrotik2
+    ip: 192.168.250.100
