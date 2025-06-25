@@ -3,7 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: snmp-exporter-{{ .ip | replace "." "-" }}
-  namespace: d8-monitoring
+  namespace: snmp-monitoring
   labels:
     prometheus: main
 spec:
