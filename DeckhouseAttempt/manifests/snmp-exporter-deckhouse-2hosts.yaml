@@ -51,7 +51,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: snmp-exporter-192-168-200-100
-  namespace: d8-monitoring
+  namespace: snmp-monitoring
   labels:
     prometheus: main
 spec:
@@ -74,7 +74,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: snmp-exporter-10-0-200-200
-  namespace: d8-monitoring
+  namespace: snmp-monitoring
   labels:
     prometheus: main
 spec:

@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: snmp-monitoring
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/crp-dm02/Lab.git
+    targetRevision: HEAD
+    path: SnmpMonitoring/charts/snmp-exporter
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: snmp-monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
