@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-ingress
+  namespace: argocd
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # Дополнительно можно добавить аннотации для TLS, авторизации и т.п.
+spec:
+  rules:
+    - host: argocd.mtuci-lab.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 443
+  # Если есть TLS — добавь секцию tls:
+  tls:
+     - hosts:
+       - argocd.mtuci-lab.sslip.io
+       secretName: argocd-tls
