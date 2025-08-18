@@ -7,14 +7,31 @@
 2. Задание сети в которой будет разворачиваться кластер `StaticClusterConfiguration`
 3. Была проблема с локальной директорией .ssh при установке, решилось путем очистки папки known_hosts
 4. Существует проблема с сертификатами letsencrypt при попытке добавить с помошью kubeconfig себе локально конфигурации
-для kubectl, они не подптсываются, либо проблема с конфигурацией модуля `user-authn` и короче решение временное это настройка самоподписанного для этого необходимо было вносить правки в конфиг `user-authn` и генерировать сертификат 
-```bash
-    `kubectl -n d8-user-authn get secrets kubernetes-api-ca-key-pair -oyaml`
-```
-и в user-authn изменить SelfSigned но это не решит проблему в долгосрок 
-```bash
-    `kubectl edit mc user-authn -oyaml`
+для kubectl, они не подптсываются, либо проблема с конфигурацией модуля `user-authn` и короче решение  это настройка самоподписанного для этого необходимо было вносить правки в конфиг `user-authn` и генерировать сертификат 
+
+
+```openssl genpkey -algorithm RSA -out /home/ubuntu/tls.key -pkeyopt rsa_keygen_bits:4096```
+
+```openssl req -x509 -new -key /home/ubuntu/tls.key -sha256 -days 3650 -out  /home/ubuntu/tls.crt```
+
+```sudo -i kubectl -n d8-cert-manager create secret generic custom-selfsigned --from-file=/home/ubuntu/tls.crt --from-file=/home/ubuntu/tls.key```
+
+
+ ```bash 
+ sudo -i kubectl apply -f - <<EOF
+ apiVersion: cert-manager.io/v1
+ kind: ClusterIssuer
+ metadata:
+   name: custom-selfsigned
+ spec:
+   ca:
+     secretName: custom-selfsigned
+ EOF
  ```
+
+
+ ```sudo -i kubectl edit mc user-authn```
+
 
 ```yaml
     apiVersion: deckhouse.io/v1alpha1
@@ -30,19 +47,23 @@
     spec:
         enabled: true
         settings:
-            controlPlaneConfigurator:
-                dexCAMode: FromIngressSecret
-            publishAPI:
+          controlPlaneConfigurator:
+            dexCAMode: FromIngressSecret
+          https:
+            certManager:
+              clusterIssuerName: custom-selfsigned
+            mode: CertManager
+          publishAPI:
             enabled: true
-            https:
-                mode: SelfSigned
         version: 2
     status:
         message: ""
         version: "2"
 ```
+после этого нужно перегенерировать kubeconfig 
 
-## user.yml
+ sudo -i kubectl get certificate kubernetes-tls-selfsigned -n d8-user-authn
+ ## user.yml
 этот yaml  создает пользователя для доступа в веб-интерфейсы кластера на мастере
 
 ## ingress-nginx-controller.yml
